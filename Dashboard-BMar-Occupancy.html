@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Restaurant Dashboard Demo</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- jsGrid -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid-theme.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f6f6f8;
+      --card-bg: #ffffff;
+      --border: #e0e0e4;
+      --text-main: #222;
+      --text-muted: #777;
+      --accent: #18a7a9;
+      --radius-lg: 16px;
+      --shadow-soft: 0 10px 25px rgba(0,0,0,0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .app-header {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-soft);
+      
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-left,
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo {
+      height: 30px;
+      display: block;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .icon-button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-hamburger {
+      font-size: 20px;
+    }
+
+    .icon-user-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+    }
+
+    .header-user-icon {
+      font-size: 24px;
+      color: var(--text-main);
+    }
+
+    .page-wrapper {
+      margin: 40px 60px 60px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .page-subtitle {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Top filter bar */
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding-top: 20px;
+      margin-bottom: 16px;
+      
+      border-radius: var(--radius-lg);
+      
+      
+      top: 0;
+      z-index: 5;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .filter-control select,
+    .filter-control input {
+      width: 100%;
+      padding: 8px 8px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .btn-primary {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      align-self: flex-end;
+      margin-top: 18px;
+      white-space: nowrap;
+    }
+
+    /* KPI cards & charts */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .chart-card {
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .chart-card-inner {
+      position: relative;
+      height: 220px;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    /* Table container */
+    .table-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .table-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .table-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+.jsgrid-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  position: relative; /* needed for sticky cells */
+}
+
+    .jsgrid-header-row > .jsgrid-header-cell,
+    .jsgrid-row > .jsgrid-cell {
+      font-size: 12px;
+      padding: 4px 6px;
+      white-space: wrap;
+    }
+    .jsgrid-alt-row > .jsgrid-cell {
+  font-size: 12px;
+}
+
+    .jsgrid-grid-body {
+      max-height: 420px; /* scroll within card */
+    }
+    
+
+    /* Sticky first column (Restaurant) */
+.jsgrid-header-row > .jsgrid-header-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+/* First column in body rows */
+.jsgrid-row > .jsgrid-cell:first-child,
+.jsgrid-alt-row > .jsgrid-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+    /* Mobile */
+     @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .page-wrapper {
+        margin: 16px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-primary {
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-card {
+        width: 100%;
+      }
+
+      .jsgrid-header-row > .jsgrid-header-cell,
+      .jsgrid-row > .jsgrid-cell,
+      .jsgrid-alt-row > .jsgrid-cell {
+        min-width: 110px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <button class="icon-button icon-hamburger" aria-label="Open menu">
+        &#9776;
+      </button>
+      <img
+        src="https://ipoolside-media.s3.amazonaws.com/site/bahamarrestaurants/images/dashboard_logo/bahamar-blue.svg"
+        alt="Baha Mar Restaurants"
+        class="header-logo"
+      />
+      <button class="icon-button" aria-label="User menu">
+        <i class="bi bi-person-circle header-user-icon"></i>
+      </button>
+    </header>
+    <div class="main-area">
+      <div class="page-wrapper">
+
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">Select a report type and use the filters to adjust the data.</p>
+
+        <!-- Filters (static for demo) -->
+        <div class="filters">
+          <div class="filter-group">
+            <span class="filter-label">Type of Report</span>
+            <div class="filter-control">
+            <select id="reportTypeSelect">
+                <option value="index.html">Live Operations</option>
+              <option value="Dashboard-BMar-Revenue.html">Revenue &amp; Performance</option>
+              <option value="Dashboard-BMar-GuestExperience.html">Guest Experience &amp; Satisfaction</option>
+              <option value="Dashboard-BMar-Occupancy.html" selected>Occupancy &amp; Table Utilization</option>
+              <option value="Dashboard-BMar-Reservations.html">Reservations</option>
+            </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Shift</span>
+            <div class="filter-control">
+              <select>
+                <option>All Shifts</option>
+                <option>Start–11am</option>
+                <option>11am–4pm</option>
+                <option>4pm–End</option>
+                <option>Custom</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Date Range</span>
+            <div class="filter-control">
+              <select>
+                <option>This Month</option>
+                <option>Today</option>
+                <option>Yesterday</option>
+                <option>Week to Date</option>
+                <option>Month to Date</option>
+                <option>Last Month</option>
+                <option>Year to Date</option>
+                <option>This Year</option>
+                <option>Last Year</option>
+                <option>Custom Range</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+           
+            <button class="btn-primary">Submit</button>
+          </div>
+        </div>
+
+        <!-- KPI + Charts grid -->
+        <div class="summary-grid">
+          <!-- Occupancy rate column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-total"></div>
+            <div class="chart-card">
+              <div class="chart-title">Occupancy rate by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="occupancyChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Covers served % column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-avg-cover"></div>
+            <div class="chart-card">
+              <div class="chart-title">Covers served % by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="coversChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avg table turnover column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-revpash"></div>
+            <div class="chart-card">
+              <div class="chart-title">Average table turnover</div>
+              <div class="chart-card-inner">
+                <canvas id="turnoverChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <div class="table-title">Occupancy &amp; Table Utilization</div>
+              <div class="table-subtitle">Per restaurant · sortable · scrollable</div>
+            </div>
+          </div>
+          <div class="jsgrid-wrapper">
+            <div id="occupancyGrid"></div>
+          </div>
+        </div>
+
+      </div> <!-- end .page-wrapper -->
+    </div> <!-- end .main-area -->
+  </div> <!-- end .app-shell -->
+
+<script>
+  // === Sample data (Occupancy & Table Utilization) ===
+  const occupancyData = [
+    {
+      restaurant: "The Swimming Pig",
+      occupancyRate: 7.77,
+      coversServed: 18.55,
+      availableCovers: 56182,
+      occupiedCovers: 4733,
+      maximumCovers: 60915,
+      avgTableTurnover: 111,
+      peakTime: "6:30 PM",
+      offPeakTime: "12:15 AM",
+    },
+    {
+      restaurant: "The Palms",
+      occupancyRate: 0.0,
+      coversServed: 0.0,
+      availableCovers: 0,
+      occupiedCovers: 0,
+      maximumCovers: 0,
+      avgTableTurnover: 0,
+      peakTime: "",
+      offPeakTime: "",
+    },
+    {
+      restaurant: "Sugar Factory",
+      occupancyRate: 20.56,
+      coversServed: 9.06,
+      availableCovers: 16461,
+      occupiedCovers: 4259,
+      maximumCovers: 20720,
+      avgTableTurnover: 67,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Shuang Ba",
+      occupancyRate: 60.77,
+      coversServed: 9.73,
+      availableCovers: 2554,
+      occupiedCovers: 3956,
+      maximumCovers: 6510,
+      avgTableTurnover: 100,
+      peakTime: "6:00 PM",
+      offPeakTime: "10:00 PM",
+    },
+    {
+      restaurant: "Regatta",
+      occupancyRate: 22.71,
+      coversServed: 0.0,
+      availableCovers: 8752,
+      occupiedCovers: 2572,
+      maximumCovers: 11324,
+      avgTableTurnover: 0,
+      peakTime: "7:00 PM",
+      offPeakTime: "6:00 PM",
+    },
+    {
+      restaurant: "Marcus at Baha Mar Fish + Chop House",
+      occupancyRate: 18.66,
+      coversServed: 7.67,
+      availableCovers: 11483,
+      occupiedCovers: 2142,
+      maximumCovers: 13625,
+      avgTableTurnover: 36,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "El Jefe",
+      occupancyRate: 15.7,
+      coversServed: 0.0,
+      availableCovers: 16137,
+      occupiedCovers: 2534,
+      maximumCovers: 18671,
+      avgTableTurnover: 0,
+      peakTime: "7:00 PM",
+      offPeakTime: "11:00 AM",
+    },
+    {
+      restaurant: "Nikkei",
+      occupancyRate: 17.1,
+      coversServed: 0.0,
+      availableCovers: 7354,
+      occupiedCovers: 1258,
+      maximumCovers: 8612,
+      avgTableTurnover: 0,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Carna at Baha Mar",
+      occupancyRate: 46.23,
+      coversServed: 4.71,
+      availableCovers: 4379,
+      occupiedCovers: 1130,
+      maximumCovers: 5509,
+      avgTableTurnover: 65,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Costa",
+      occupancyRate: 22.83,
+      coversServed: 10.01,
+      availableCovers: 10927,
+      occupiedCovers: 2493,
+      maximumCovers: 13420,
+      avgTableTurnover: 51,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Café Boulud",
+      occupancyRate: 17.66,
+      coversServed: 7.98,
+      availableCovers: 7167,
+      occupiedCovers: 1688,
+      maximumCovers: 8855,
+      avgTableTurnover: 45,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Leola by Scott Conant",
+      occupancyRate: 71.45,
+      coversServed: 7.35,
+      availableCovers: 3666,
+      occupiedCovers: 2619,
+      maximumCovers: 6285,
+      avgTableTurnover: 100,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Katsuya at Baha Mar",
+      occupancyRate: 37.86,
+      coversServed: 5.38,
+      availableCovers: 5295,
+      occupiedCovers: 2003,
+      maximumCovers: 7298,
+      avgTableTurnover: 67,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Stix",
+      occupancyRate: 17.9,
+      coversServed: 0.0,
+      availableCovers: 7595,
+      occupiedCovers: 1358,
+      maximumCovers: 8953,
+      avgTableTurnover: 0,
+      peakTime: "6:00 PM",
+      offPeakTime: "11:00 AM",
+    },
+    {
+      restaurant: "Fi'lia",
+      occupancyRate: 23.72,
+      coversServed: 0.0,
+      availableCovers: 8259,
+      occupiedCovers: 1960,
+      maximumCovers: 10219,
+      avgTableTurnover: 0,
+      peakTime: "6:00 PM",
+      offPeakTime: "12:00 PM",
+    },
+    {
+      restaurant: "Cinko Asian Latino Grill",
+      occupancyRate: 32.97,
+      coversServed: 11.2,
+      availableCovers: 3193,
+      occupiedCovers: 1053,
+      maximumCovers: 4246,
+      avgTableTurnover: 59,
+      peakTime: "6:00 PM",
+      offPeakTime: "11:00 AM",
+    },
+    {
+      restaurant: "Marcus 21",
+      occupancyRate: 22.32,
+      coversServed: 8.04,
+      availableCovers: 7321,
+      occupiedCovers: 1635,
+      maximumCovers: 8956,
+      avgTableTurnover: 36,
+      peakTime: "6:00 PM",
+      offPeakTime: "11:00 AM",
+    },
+    {
+      restaurant: "Marcus Fish Shack",
+      occupancyRate: 10.78,
+      coversServed: 0.0,
+      availableCovers: 7903,
+      occupiedCovers: 852,
+      maximumCovers: 8755,
+      avgTableTurnover: 0,
+      peakTime: "6:00 PM",
+      offPeakTime: "11:00 AM",
+    },
+    {
+      restaurant: "25 North",
+      occupancyRate: 10.19,
+      coversServed: 0.0,
+      availableCovers: 3903,
+      occupiedCovers: 443,
+      maximumCovers: 4346,
+      avgTableTurnover: 0,
+      peakTime: "6:00 PM",
+      offPeakTime: "11:00 AM",
+    },
+  ];
+
+
+  // === KPI tiles ===
+  function renderKpis(data) {
+    const totalRestaurants = data.length || 1;
+    const totalAvailable = data.reduce((sum, r) => sum + r.availableCovers, 0);
+    const totalOccupied = data.reduce((sum, r) => sum + r.occupiedCovers, 0);
+    const overallOcc = totalAvailable ? (totalOccupied / totalAvailable) * 100 : 0;
+
+    const avgCoversServed =
+      data.reduce((sum, r) => sum + r.coversServed, 0) / totalRestaurants || 0;
+    const avgTurnover =
+      data.reduce((sum, r) => sum + r.avgTableTurnover, 0) / totalRestaurants || 0;
+
+    const kpis = [
+      {
+        id: "kpi-total",
+        label: "Overall Occupancy",
+        value: overallOcc.toFixed(1) + "%",
+        sub: "Weighted across all restaurants",
+      },
+      {
+        id: "kpi-avg-cover",
+        label: "Avg Covers Served %",
+        value: avgCoversServed.toFixed(2) + "%",
+        sub: "Average utilization of available covers",
+      },
+      {
+        id: "kpi-revpash",
+        label: "Avg Table Turnover",
+        value: avgTurnover.toFixed(1),
+        sub: "Average table turns per period",
+      },
+    ];
+
+    kpis.forEach((kpi) => {
+      const el = document.getElementById(kpi.id);
+      if (!el) return;
+      el.innerHTML = `
+        <div class="kpi-label">${kpi.label}</div>
+        <div class="kpi-value">${kpi.value}</div>
+        <div class="kpi-sub">${kpi.sub}</div>
+      `;
+    });
+  }
+
+
+  // === Charts ===
+  function initCharts(data) {
+    const labels = data.map((r) => r.restaurant);
+
+    function makeLollipopChart(canvasId, field, label, maxX) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      const values = data.map((r) => r[field]);
+
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              // thin horizontal bar from left to value
+              type: "bar",
+              label,
+              data: values,
+            },
+            {
+              // dot at the end of each bar
+              type: "scatter",
+              data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
+              showLine: false,
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y", // restaurants on the left
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, max: maxX || undefined },
+            y: {},
+          },
+        },
+      });
+    }
+
+    // Occupancy rate (0-100%)
+    makeLollipopChart("occupancyChart", "occupancyRate", "Occupancy rate %", 100);
+    // Covers served % (0-100%)
+    makeLollipopChart("coversChart", "coversServed", "Covers served %", 100);
+    // Avg table turnover
+    makeLollipopChart("turnoverChart", "avgTableTurnover", "Avg table turnover");
+  }
+
+
+  // === jsGrid table ===
+  function initGrid(data) {
+    $("#occupancyGrid").jsGrid({
+      width: "100%",
+      height: "auto",
+      inserting: false,
+      editing: false,
+      sorting: true,
+      paging: false,
+      autoload: true,
+      data,
+      fields: [
+        { name: "restaurant", title: "Restaurant", type: "text", width: 150 },
+        { name: "occupancyRate", title: "Occupancy Rate %", type: "number", width: 70 },
+        { name: "coversServed", title: "Covers Served %", type: "number", width: 70 },
+        { name: "availableCovers", title: "Available Covers", type: "number", width: 80 },
+        { name: "occupiedCovers", title: "Occupied Covers", type: "number", width: 80 },
+        { name: "maximumCovers", title: "Maximum Covers", type: "number", width: 80 },
+        { name: "avgTableTurnover", title: "AVG Table Turnover", type: "number", width: 80 },
+        { name: "peakTime", title: "Peak Time", type: "text", width: 60 },
+        { name: "offPeakTime", title: "Off-Peak Time", type: "text", width: 60 },
+      ],
+    });
+  }
+
+
+  // Initialize
+  renderKpis(occupancyData);
+  initCharts(occupancyData);
+  initGrid(occupancyData);
+
+  // Navigate between dashboard pages based on report type selection
+  document.addEventListener("DOMContentLoaded", function () {
+    const reportSelect = document.getElementById("reportTypeSelect");
+    if (!reportSelect) return;
+
+    reportSelect.addEventListener("change", function () {
+      const target = this.value;
+      if (target) {
+        window.location.href = target;
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
