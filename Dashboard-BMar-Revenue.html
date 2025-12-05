@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Restaurant Dashboard Demo</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- jsGrid -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid-theme.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f6f6f8;
+      --card-bg: #ffffff;
+      --border: #e0e0e4;
+      --text-main: #222;
+      --text-muted: #777;
+      --accent: #18a7a9;
+      --radius-lg: 16px;
+      --shadow-soft: 0 10px 25px rgba(0,0,0,0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .app-header {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-soft);
+  
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-left,
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo {
+      height: 30px;
+      display: block;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .icon-button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-hamburger {
+      font-size: 20px;
+    }
+
+    .icon-user-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+    }
+
+    .header-user-icon {
+      font-size: 24px;
+      color: var(--text-main);
+    }
+
+    .page-wrapper {
+      margin: 40px 60px 60px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .page-subtitle {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Top filter bar */
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding-top: 20px;
+      margin-bottom: 16px;
+      
+      border-radius: var(--radius-lg);
+      
+      
+      top: 0;
+      z-index: 5;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .filter-control select,
+    .filter-control input {
+      width: 100%;
+      padding: 8px 8px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .btn-primary {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      align-self: flex-end;
+      margin-top: 18px;
+      white-space: nowrap;
+    }
+
+    /* KPI cards & charts */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .chart-card {
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .chart-card-inner {
+      position: relative;
+      height: 220px;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    /* Table container */
+    .table-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .table-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .table-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+.jsgrid-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  position: relative; /* needed for sticky cells */
+}
+
+    .jsgrid-header-row > .jsgrid-header-cell,
+    .jsgrid-row > .jsgrid-cell {
+      font-size: 12px;
+      padding: 4px 6px;
+      white-space: wrap;
+    }
+    .jsgrid-alt-row > .jsgrid-cell {
+  font-size: 12px;
+}
+
+    .jsgrid-grid-body {
+      max-height: 420px; /* scroll within card */
+    }
+    
+
+    /* Sticky first column (Restaurant) */
+.jsgrid-header-row > .jsgrid-header-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+/* First column in body rows */
+.jsgrid-row > .jsgrid-cell:first-child,
+.jsgrid-alt-row > .jsgrid-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+    /* Mobile */
+     @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .page-wrapper {
+        margin: 16px;
+      }
+    }
+
+    @media (max-width: 600px) {
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-primary {
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-card {
+        width: 100%;
+      }
+
+      .jsgrid-header-row > .jsgrid-header-cell,
+      .jsgrid-row > .jsgrid-cell,
+      .jsgrid-alt-row > .jsgrid-cell {
+        min-width: 110px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <button class="icon-button icon-hamburger" aria-label="Open menu">
+        &#9776;
+      </button>
+      <img
+        src="https://ipoolside-media.s3.amazonaws.com/site/bahamarrestaurants/images/dashboard_logo/bahamar-blue.svg"
+        alt="Baha Mar Restaurants"
+        class="header-logo"
+      />
+      <button class="icon-button" aria-label="User menu">
+        <i class="bi bi-person-circle header-user-icon"></i>
+      </button>
+    </header>
+    <div class="main-area">
+      <div class="page-wrapper">
+
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">Select a report type and use the filters to adjust the data.</p>
+
+        <!-- Filters (static for demo) -->
+        <div class="filters">
+          <div class="filter-group">
+            <span class="filter-label">Type of Report</span>
+            <div class="filter-control">
+              <select id="reportTypeSelect">
+                
+                <option value="index.html">Live Operations</option>
+                <option value="Dashboard-BMar-Revenue.html" selected>Revenue &amp; Performance</option>
+                <option value="Dashboard-BMar-GuestExperience.html">Guest Experience &amp; Satisfaction</option>
+                <option value="Dashboard-BMar-Occupancy.html">Occupancy &amp; Table Utilization</option>
+                <option value="Dashboard-BMar-Reservations.html">Reservations</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Shift</span>
+            <div class="filter-control">
+              <select>
+                <option>All Shifts</option>
+                <option>Start–11am</option>
+                <option>11am–4pm</option>
+                <option>4pm–End</option>
+                <option>Custom</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Date Range</span>
+            <div class="filter-control">
+              <select>
+                <option>This Month</option>
+                <option>Today</option>
+                <option>Yesterday</option>
+                <option>Week to Date</option>
+                <option>Month to Date</option>
+                <option>Last Month</option>
+                <option>Year to Date</option>
+                <option>This Year</option>
+                <option>Last Year</option>
+                <option>Custom Range</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+           
+            <button class="btn-primary">Submit</button>
+          </div>
+        </div>
+
+        <!-- KPI + Charts grid -->
+        <div class="summary-grid">
+          <!-- Total revenue column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-total"></div>
+            <div class="chart-card">
+              <div class="chart-title">Total revenue by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="revenueChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avg Rev / Cover column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-avg-cover"></div>
+            <div class="chart-card">
+              <div class="chart-title">Avg revenue per cover</div>
+              <div class="chart-card-inner">
+                <canvas id="avgCoverChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- REVpash column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-revpash"></div>
+            <div class="chart-card">
+              <div class="chart-title">REVpash by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="revpashChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <div class="table-title">Revenue &amp; Performance</div>
+              <div class="table-subtitle">Per restaurant · sortable · scrollable</div>
+            </div>
+          </div>
+          <div class="jsgrid-wrapper">
+            <div id="revenueGrid"></div>
+          </div>
+        </div>
+
+      </div> <!-- end .page-wrapper -->
+    </div> <!-- end .main-area -->
+  </div> <!-- end .app-shell -->
+
+<script>
+    // === Sample data (Revenue & Performance) ===
+    const revenueData = [
+      {
+        restaurant: "Cleo Mediterráneo at Baha Mar",
+        occupancyRate: 37.62,
+        coversServed: 11.72,
+        reservationsSeated: 18.94,
+        totalRevenue: 61250.82,
+        avgRevCover: 42.77,
+        avgRevServer: 2112.10,
+        revpash: 0.92,
+        avgTableTurnover: 1.0
+      },
+      {
+        restaurant: "Carna at Baha Mar",
+        occupancyRate: 46.23,
+        coversServed: 4.71,
+        reservationsSeated: 6.00,
+        totalRevenue: 59979.58,
+        avgRevCover: 139.49,
+        avgRevServer: 5997.96,
+        revpash: 1.25,
+        avgTableTurnover: 1.0
+      },
+      {
+        restaurant: "Marcus at Baha Mar Fish + Chop House",
+        occupancyRate: 18.66,
+        coversServed: 7.67,
+        reservationsSeated: 10.56,
+        totalRevenue: 56990.02,
+        avgRevCover: 68.33,
+        avgRevServer: 1499.74,
+        revpash: 0.35,
+        avgTableTurnover: 1.0
+      },
+      {
+        restaurant: "Katsuya at Baha Mar",
+        occupancyRate: 37.86,
+        coversServed: 5.38,
+        reservationsSeated: 7.79,
+        totalRevenue: 46154.06,
+        avgRevCover: 79.17,
+        avgRevServer: 2884.63,
+        revpash: 1.28,
+        avgTableTurnover: 1.0
+      },
+      {
+        restaurant: "Costa",
+        occupancyRate: 22.83,
+        coversServed: 10.01,
+        reservationsSeated: 12.60,
+        totalRevenue: 42309.36,
+        avgRevCover: 60.79,
+        avgRevServer: 2820.62,
+        revpash: 0.86,
+        avgTableTurnover: 1.0
+      },
+      {
+        restaurant: "Café Boulud",
+        occupancyRate: 17.66,
+        coversServed: 7.98,
+        reservationsSeated: 10.14,
+        totalRevenue: 34233.79,
+        avgRevCover: 76.19,
+        avgRevServer: 2154.36,
+        revpash: 0.74,
+        avgTableTurnover: 1.0
+      },
+      {
+        restaurant: "Shuang Ba",
+        occupancyRate: 60.77,
+        coversServed: 9.73,
+        reservationsSeated: 12.87,
+        totalRevenue: 33031.73,
+        avgRevCover: 85.80,
+        avgRevServer: 3303.17,
+        revpash: 1.93,
+        avgTableTurnover: 1.0
+      },
+      {
+        restaurant: "Leola by Scott Conant",
+        occupancyRate: 71.45,
+        coversServed: 7.35,
+        reservationsSeated: 9.89,
+        totalRevenue: 31787.35,
+        avgRevCover: 83.43,
+        avgRevServer: 1765.96,
+        revpash: 1.10,
+        avgTableTurnover: 1.0
+      }
+    ];
+
+    // === KPI tiles ===
+    function renderKpis(data) {
+      const totalRestaurants = data.length || 1;
+      const totalRevenue = data.reduce((sum, r) => sum + r.totalRevenue, 0);
+      const avgRevCover =
+        data.reduce((sum, r) => sum + r.avgRevCover, 0) / totalRestaurants;
+      const avgRevPash =
+        data.reduce((sum, r) => sum + r.revpash, 0) / totalRestaurants;
+
+      const kpis = [
+        {
+          id: "kpi-total",
+          label: "Total Revenue",
+          value: "$" + totalRevenue.toLocaleString("en-US", { maximumFractionDigits: 0 }),
+          sub: "Selected range · all restaurants"
+        },
+        {
+          id: "kpi-avg-cover",
+          label: "Avg Rev / Cover",
+          value: "$" + avgRevCover.toFixed(2),
+          sub: "Average revenue per cover"
+        },
+        {
+          id: "kpi-revpash",
+          label: "REVpash",
+          value: avgRevPash.toFixed(2),
+          sub: "Revenue per available seat hour"
+        }
+      ];
+
+      kpis.forEach(kpi => {
+        const el = document.getElementById(kpi.id);
+        if (!el) return;
+        el.innerHTML = `
+          <div class="kpi-label">${kpi.label}</div>
+          <div class="kpi-value">${kpi.value}</div>
+          <div class="kpi-sub">${kpi.sub}</div>
+        `;
+      });
+    }
+
+    // === jsGrid table ===
+    function initGrid(data) {
+      $("#revenueGrid").jsGrid({
+        width: "100%",
+        height: "auto",
+        inserting: false,
+        editing: false,
+        sorting: true,
+        paging: false,
+        autoload: true,
+        data,
+        fields: [
+          { name: "restaurant", title: "Restaurant", type: "text", width: 150 },
+          { name: "occupancyRate", title: "Occupancy Rate %", type: "number", width: 60 },
+          { name: "coversServed", title: "Covers Served %", type: "number", width: 60 },
+          { name: "reservationsSeated", title: "Reservations Seated %", type: "number", width: 70 },
+          { name: "totalRevenue", title: "Total Revenue", type: "number", width: 80 },
+          { name: "avgRevCover", title: "AVG Rev / Cover", type: "number", width: 70 },
+          { name: "avgRevServer", title: "AVG Rev / Server", type: "number", width: 70 },
+          { name: "revpash", title: "REVpash", type: "number", width: 60 },
+          { name: "avgTableTurnover", title: "AVG Table Turnover", type: "number", width: 60 }
+        ]
+      });
+    }
+
+    // Initialize
+    renderKpis(revenueData);
+    initCharts(revenueData);
+    initGrid(revenueData);
+
+    // Navigate between dashboard pages based on report type selection
+    document.addEventListener("DOMContentLoaded", function () {
+      const reportSelect = document.getElementById("reportTypeSelect");
+      if (!reportSelect) return;
+
+      reportSelect.addEventListener("change", function () {
+        const target = this.value;
+        if (target) {
+          window.location.href = target;
+        }
+      });
+    });
+
+    function initCharts(data) {
+  const labels = data.map(r => r.restaurant);
+
+  function makeLollipopChart(canvasId, field, label) {
+    const ctx = document.getElementById(canvasId);
+    const values = data.map(r => r[field]);
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            // thin horizontal bar from left to value
+            type: "bar",
+            label,
+            data: values,
+          },
+          {
+            // dot at the end of each bar
+            type: "scatter",
+            data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
+            showLine: false,
+          }
+        ]
+      },
+      options: {
+        indexAxis: "y", // restaurants on the left
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true },
+          y: {}
+        }
+      }
+    });
+  }
+
+  makeLollipopChart("revenueChart", "totalRevenue", "Total revenue");
+  makeLollipopChart("revpashChart", "revpash", "REVpash");
+  makeLollipopChart("avgCoverChart", "avgRevCover", "Avg revenue per cover");
+}
+</script>
+
+</body>
+</html>
