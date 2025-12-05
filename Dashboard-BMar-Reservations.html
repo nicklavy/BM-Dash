@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Restaurant Dashboard Demo</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- jsGrid -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid-theme.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f6f6f8;
+      --card-bg: #ffffff;
+      --border: #e0e0e4;
+      --text-main: #222;
+      --text-muted: #777;
+      --accent: #18a7a9;
+      --radius-lg: 16px;
+      --shadow-soft: 0 10px 25px rgba(0,0,0,0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .app-header {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-soft);
+      
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-left,
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo {
+      height: 30px;
+      display: block;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .icon-button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-hamburger {
+      font-size: 20px;
+    }
+
+    .icon-user-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+    }
+
+    .header-user-icon {
+      font-size: 24px;
+      color: var(--text-main);
+    }
+
+    .page-wrapper {
+      margin: 40px 60px 60px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .page-subtitle {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Top filter bar */
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding-top: 20px;
+      margin-bottom: 16px;
+      
+      border-radius: var(--radius-lg);
+      
+      
+      top: 0;
+      z-index: 5;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .filter-control select,
+    .filter-control input {
+      width: 100%;
+      padding: 8px 8px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .btn-primary {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      align-self: flex-end;
+      margin-top: 18px;
+      white-space: nowrap;
+    }
+
+    /* KPI cards & charts */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .chart-card {
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .chart-card-inner {
+      position: relative;
+      height: 220px;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    /* Table container */
+    .table-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .table-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .table-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+.jsgrid-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  position: relative; /* needed for sticky cells */
+}
+
+    .jsgrid-header-row > .jsgrid-header-cell,
+    .jsgrid-row > .jsgrid-cell {
+      font-size: 12px;
+      padding: 4px 6px;
+      white-space: wrap;
+    }
+    .jsgrid-alt-row > .jsgrid-cell {
+  font-size: 12px;
+}
+
+    .jsgrid-grid-body {
+      max-height: 420px; /* scroll within card */
+    }
+    
+
+    /* Sticky first column (Restaurant) */
+.jsgrid-header-row > .jsgrid-header-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+/* First column in body rows */
+.jsgrid-row > .jsgrid-cell:first-child,
+.jsgrid-alt-row > .jsgrid-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+    /* Mobile */
+     @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .page-wrapper {
+        margin: 16px;
+      }
+    }
+
+    @media (max-width: 600px) {
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-primary {
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-card {
+        width: 100%;
+      }
+
+      .jsgrid-header-row > .jsgrid-header-cell,
+      .jsgrid-row > .jsgrid-cell,
+      .jsgrid-alt-row > .jsgrid-cell {
+        min-width: 110px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <button class="icon-button icon-hamburger" aria-label="Open menu">
+        &#9776;
+      </button>
+      <img
+        src="https://ipoolside-media.s3.amazonaws.com/site/bahamarrestaurants/images/dashboard_logo/bahamar-blue.svg"
+        alt="Baha Mar Restaurants"
+        class="header-logo"
+      />
+      <button class="icon-button" aria-label="User menu">
+        <i class="bi bi-person-circle header-user-icon"></i>
+      </button>
+    </header>
+    <div class="main-area">
+      <div class="page-wrapper">
+
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">Select a report type and use the filters to adjust the data.</p>
+
+        <!-- Filters (static for demo) -->
+        <div class="filters">
+          <div class="filter-group">
+            <span class="filter-label">Type of Report</span>
+            <div class="filter-control">
+              <select id="reportTypeSelect">
+                <option value="index.html">Live Operations</option>
+                <option value="Dashboard-BMar-Revenue.html">Revenue &amp; Performance</option>
+                <option value="Dashboard-BMar-GuestExperience.html">Guest Experience &amp; Satisfaction</option>
+                <option value="Dashboard-BMar-Occupancy.html">Occupancy &amp; Table Utilization</option>
+                <option value="Dashboard-BMar-Reservations.html" selected>Reservations</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Shift</span>
+            <div class="filter-control">
+              <select>
+                <option>All Shifts</option>
+                <option>Start–11am</option>
+                <option>11am–4pm</option>
+                <option>4pm–End</option>
+                <option>Custom</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Date Range</span>
+            <div class="filter-control">
+              <select>
+                <option>This Month</option>
+                <option>Today</option>
+                <option>Yesterday</option>
+                <option>Week to Date</option>
+                <option>Month to Date</option>
+                <option>Last Month</option>
+                <option>Year to Date</option>
+                <option>This Year</option>
+                <option>Last Year</option>
+                <option>Custom Range</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+           
+            <button class="btn-primary">Submit</button>
+          </div>
+        </div>
+
+        <!-- KPI + Charts grid -->
+        <div class="summary-grid">
+          <!-- Total reservations column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-total"></div>
+            <div class="chart-card">
+              <div class="chart-title">Estimated covers seated by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="reservationsChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seated % column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-avg-cover"></div>
+            <div class="chart-card">
+              <div class="chart-title">Show rate % by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="seatedChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- No-show % column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-revpash"></div>
+            <div class="chart-card">
+              <div class="chart-title">Direct guest booking % by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="noShowChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <div class="table-title">Reservations</div>
+              <div class="table-subtitle">Per restaurant · sortable · scrollable</div>
+            </div>
+          </div>
+          <div class="jsgrid-wrapper">
+            <div id="reservationsGrid"></div>
+          </div>
+        </div>
+
+      </div> <!-- end .page-wrapper -->
+    </div> <!-- end .main-area -->
+  </div> <!-- end .app-shell -->
+
+  <script>
+    // === Sample data (Reservations) ===
+    const reservationsData = [
+      {
+        restaurant: "Carna at Baha Mar",
+        totalReservations: 420,
+        upcoming: 75,
+        cancelled: 32,
+        noShow: 18,
+        seated: 355,
+        departed: 340,
+        vip: 22,
+        avgPartySize: 3.1,
+        bookedByGuest: 280,
+        bookedByStaff: 110,
+        walkIns: 30
+      },
+      {
+        restaurant: "Marcus at Baha Mar Fish + Chop House",
+        totalReservations: 510,
+        upcoming: 92,
+        cancelled: 41,
+        noShow: 25,
+        seated: 444,
+        departed: 430,
+        vip: 28,
+        avgPartySize: 2.9,
+        bookedByGuest: 360,
+        bookedByStaff: 120,
+        walkIns: 30
+      },
+      {
+        restaurant: "The Swimming Pig",
+        totalReservations: 380,
+        upcoming: 60,
+        cancelled: 27,
+        noShow: 20,
+        seated: 333,
+        departed: 320,
+        vip: 10,
+        avgPartySize: 2.6,
+        bookedByGuest: 250,
+        bookedByStaff: 90,
+        walkIns: 40
+      },
+      {
+        restaurant: "Shuang Ba",
+        totalReservations: 260,
+        upcoming: 40,
+        cancelled: 12,
+        noShow: 9,
+        seated: 239,
+        departed: 230,
+        vip: 18,
+        avgPartySize: 3.4,
+        bookedByGuest: 180,
+        bookedByStaff: 60,
+        walkIns: 20
+      },
+      {
+        restaurant: "Leola by Scott Conant",
+        totalReservations: 310,
+        upcoming: 55,
+        cancelled: 19,
+        noShow: 12,
+        seated: 279,
+        departed: 270,
+        vip: 16,
+        avgPartySize: 2.8,
+        bookedByGuest: 220,
+        bookedByStaff: 70,
+        walkIns: 20
+      },
+      {
+        restaurant: "Cinko Asian Latino Grill",
+        totalReservations: 295,
+        upcoming: 48,
+        cancelled: 15,
+        noShow: 10,
+        seated: 270,
+        departed: 260,
+        vip: 14,
+        avgPartySize: 3.2,
+        bookedByGuest: 210,
+        bookedByStaff: 60,
+        walkIns: 25
+      },
+      {
+        restaurant: "Katsuya at Baha Mar",
+        totalReservations: 490,
+        upcoming: 88,
+        cancelled: 38,
+        noShow: 22,
+        seated: 430,
+        departed: 420,
+        vip: 30,
+        avgPartySize: 3.0,
+        bookedByGuest: 340,
+        bookedByStaff: 120,
+        walkIns: 30
+      },
+      {
+        restaurant: "Costa",
+        totalReservations: 275,
+        upcoming: 45,
+        cancelled: 20,
+        noShow: 14,
+        seated: 241,
+        departed: 235,
+        vip: 12,
+        avgPartySize: 2.7,
+        bookedByGuest: 190,
+        bookedByStaff: 60,
+        walkIns: 25
+      }
+    ];
+
+    // === KPI tiles ===
+    function renderKpis(data) {
+      const totalReservations = data.reduce((sum, r) => sum + r.totalReservations, 0);
+      const totalSeated = data.reduce((sum, r) => sum + r.seated, 0);
+      const totalGuestBooked = data.reduce((sum, r) => sum + r.bookedByGuest, 0);
+
+      // Estimated covers seated = seated reservations * avg party size
+      const totalEstimatedCoversSeated = data.reduce(
+        (sum, r) => sum + (r.seated * r.avgPartySize),
+        0
+      );
+
+      const showRate = totalReservations ? (totalSeated / totalReservations) * 100 : 0;
+      const directGuestShare = totalReservations ? (totalGuestBooked / totalReservations) * 100 : 0;
+
+      const kpis = [
+        {
+          id: "kpi-total",
+          label: "Estimated Covers Seated",
+          value: Math.round(totalEstimatedCoversSeated).toLocaleString("en-US"),
+          sub: "Estimated guests seated · all restaurants"
+        },
+        {
+          id: "kpi-avg-cover",
+          label: "Overall Show Rate",
+          value: showRate.toFixed(1) + "%",
+          sub: "Share of reservations seated"
+        },
+        {
+          id: "kpi-revpash",
+          label: "Direct Guest Booking Share",
+          value: directGuestShare.toFixed(1) + "%",
+          sub: "Reservations booked directly by guests"
+        }
+      ];
+
+      kpis.forEach(kpi => {
+        const el = document.getElementById(kpi.id);
+        if (!el) return;
+        el.innerHTML = `
+          <div class="kpi-label">${kpi.label}</div>
+          <div class="kpi-value">${kpi.value}</div>
+          <div class="kpi-sub">${kpi.sub}</div>
+        `;
+      });
+    }
+
+    // === Charts (horizontal lollipop style) ===
+    function initCharts(data) {
+      const labels = data.map(r => r.restaurant);
+
+      function makeLollipopChart(canvasId, values, label, maxX) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                type: "bar",
+                label,
+                data: values
+              },
+              {
+                type: "scatter",
+                data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
+                showLine: false
+              }
+            ]
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { beginAtZero: true, max: maxX || undefined },
+              y: {}
+            }
+          }
+        });
+      }
+
+      // 1) Estimated covers seated per restaurant
+      const coversValues = data.map(r => r.seated * r.avgPartySize);
+
+      // 2) Show rate per restaurant (seated % of reservations)
+      const showRateValues = data.map(r =>
+        r.totalReservations ? (r.seated / r.totalReservations) * 100 : 0
+      );
+
+      // 3) Direct guest booking share per restaurant
+      const guestShareValues = data.map(r =>
+        r.totalReservations ? (r.bookedByGuest / r.totalReservations) * 100 : 0
+      );
+
+      makeLollipopChart("reservationsChart", coversValues, "Estimated covers seated");
+      makeLollipopChart("seatedChart", showRateValues, "Show rate %", 100);
+      makeLollipopChart("noShowChart", guestShareValues, "Direct guest booking %", 100);
+    }
+
+    // === jsGrid table ===
+    function initGrid(data) {
+      $("#reservationsGrid").jsGrid({
+        width: "100%",
+        height: "auto",
+        inserting: false,
+        editing: false,
+        sorting: true,
+        paging: false,
+        autoload: true,
+        data,
+        fields: [
+          { name: "restaurant", title: "Restaurant", type: "text", width: 150 },
+          { name: "totalReservations", title: "Total Reservations", type: "number", width: 70 },
+          { name: "upcoming", title: "Upcoming", type: "number", width: 60 },
+          { name: "cancelled", title: "Cancelled", type: "number", width: 60 },
+          { name: "noShow", title: "No-Show", type: "number", width: 60 },
+          { name: "seated", title: "Seated", type: "number", width: 60 },
+          { name: "departed", title: "Departed", type: "number", width: 60 },
+          { name: "vip", title: "VIP", type: "number", width: 50 },
+          { name: "avgPartySize", title: "Avg Party Size", type: "number", width: 60 },
+          { name: "bookedByGuest", title: "Booked by Guest", type: "number", width: 70 },
+          { name: "bookedByStaff", title: "Booked by Staff", type: "number", width: 70 },
+          { name: "walkIns", title: "Walk-Ins", type: "number", width: 60 }
+        ]
+      });
+    }
+
+    // Initialize
+    renderKpis(reservationsData);
+    initCharts(reservationsData);
+    initGrid(reservationsData);
+
+    // Navigate between dashboard pages based on report type selection
+    document.addEventListener("DOMContentLoaded", function () {
+      const reportSelect = document.getElementById("reportTypeSelect");
+      if (!reportSelect) return;
+
+      reportSelect.addEventListener("change", function () {
+        const target = this.value;
+        if (target) {
+          window.location.href = target;
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
