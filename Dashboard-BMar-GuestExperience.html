@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Restaurant Dashboard Demo</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- jsGrid -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid-theme.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f6f6f8;
+      --card-bg: #ffffff;
+      --border: #e0e0e4;
+      --text-main: #222;
+      --text-muted: #777;
+      --accent: #18a7a9;
+      --radius-lg: 16px;
+      --shadow-soft: 0 10px 25px rgba(0,0,0,0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .app-header {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-soft);
+      
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-left,
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo {
+      height: 30px;
+      display: block;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .icon-button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-hamburger {
+      font-size: 20px;
+    }
+
+    .icon-user-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+    }
+
+    .header-user-icon {
+      font-size: 24px;
+      color: var(--text-main);
+    }
+
+    .page-wrapper {
+      margin: 40px 60px 60px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .page-subtitle {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Top filter bar */
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding-top: 20px;
+      margin-bottom: 16px;
+      
+      border-radius: var(--radius-lg);
+      
+      
+      top: 0;
+      z-index: 5;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .filter-control select,
+    .filter-control input {
+      width: 100%;
+      padding: 8px 8px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .btn-primary {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      align-self: flex-end;
+      margin-top: 18px;
+      white-space: nowrap;
+    }
+
+    /* KPI cards & charts */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .chart-card {
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .chart-card-inner {
+      position: relative;
+      height: 220px;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    /* Table container */
+    .table-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .table-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .table-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+.jsgrid-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  position: relative; /* needed for sticky cells */
+}
+
+    .jsgrid-header-row > .jsgrid-header-cell,
+    .jsgrid-row > .jsgrid-cell {
+      font-size: 12px;
+      padding: 4px 6px;
+      white-space: wrap;
+    }
+    .jsgrid-alt-row > .jsgrid-cell {
+  font-size: 12px;
+}
+
+    .jsgrid-grid-body {
+      max-height: 420px; /* scroll within card */
+    }
+    
+
+    /* Sticky first column (Restaurant) */
+.jsgrid-header-row > .jsgrid-header-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+/* First column in body rows */
+.jsgrid-row > .jsgrid-cell:first-child,
+.jsgrid-alt-row > .jsgrid-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--card-bg);
+  white-space: normal;
+  max-width: 180px;
+}
+
+    /* Mobile */
+     @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .page-wrapper {
+        margin: 16px;
+      }
+    }
+
+    @media (max-width: 600px) {
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-primary {
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-card {
+        width: 100%;
+      }
+
+      .jsgrid-header-row > .jsgrid-header-cell,
+      .jsgrid-row > .jsgrid-cell,
+      .jsgrid-alt-row > .jsgrid-cell {
+        min-width: 110px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <button class="icon-button icon-hamburger" aria-label="Open menu">
+        &#9776;
+      </button>
+      <img
+        src="https://ipoolside-media.s3.amazonaws.com/site/bahamarrestaurants/images/dashboard_logo/bahamar-blue.svg"
+        alt="Baha Mar Restaurants"
+        class="header-logo"
+      />
+      <button class="icon-button" aria-label="User menu">
+        <i class="bi bi-person-circle header-user-icon"></i>
+      </button>
+    </header>
+    <div class="main-area">
+      <div class="page-wrapper">
+
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">Select a report type and use the filters to adjust the data.</p>
+
+        <!-- Filters (static for demo) -->
+        <div class="filters">
+          <div class="filter-group">
+            <span class="filter-label">Type of Report</span>
+            <div class="filter-control">
+              <select id="reportTypeSelect">
+                <option value="index.html">Live Operations</option>
+                <option value="Dashboard-BMar-Revenue.html">Revenue &amp; Performance</option>
+                <option value="Dashboard-BMar-GuestExperience.html" selected>Guest Experience &amp; Satisfaction</option>
+                <option value="Dashboard-BMar-Occupancy.html">Occupancy &amp; Table Utilization</option>
+                <option value="Dashboard-BMar-Reservations.html">Reservations</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Shift</span>
+            <div class="filter-control">
+              <select>
+                <option>All Shifts</option>
+                <option>Start–11am</option>
+                <option>11am–4pm</option>
+                <option>4pm–End</option>
+                <option>Custom</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Date Range</span>
+            <div class="filter-control">
+              <select>
+                <option>This Month</option>
+                <option>Today</option>
+                <option>Yesterday</option>
+                <option>Week to Date</option>
+                <option>Month to Date</option>
+                <option>Last Month</option>
+                <option>Year to Date</option>
+                <option>This Year</option>
+                <option>Last Year</option>
+                <option>Custom Range</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
+           
+            <button class="btn-primary">Submit</button>
+          </div>
+        </div>
+
+        <!-- KPI + Charts grid -->
+        <div class="summary-grid">
+          <!-- Avg survey score column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-total"></div>
+            <div class="chart-card">
+              <div class="chart-title">Survey score by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="surveyChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Repeat guests % column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-avg-cover"></div>
+            <div class="chart-card">
+              <div class="chart-title">Repeat guests % by restaurant</div>
+              <div class="chart-card-inner">
+                <canvas id="repeatChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avg dining duration column -->
+          <div class="summary-col">
+            <div class="kpi-card" id="kpi-revpash"></div>
+            <div class="chart-card">
+              <div class="chart-title">Average dining duration (minutes)</div>
+              <div class="chart-card-inner">
+                <canvas id="durationChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <div class="table-title">Guest Experience &amp; Satisfaction</div>
+              <div class="table-subtitle">Per restaurant · sortable · scrollable</div>
+            </div>
+          </div>
+          <div class="jsgrid-wrapper">
+            <div id="guestExpGrid"></div>
+          </div>
+        </div>
+
+      </div> <!-- end .page-wrapper -->
+    </div> <!-- end .main-area -->
+  </div> <!-- end .app-shell -->
+
+<script>
+  // === Sample data (Guest Experience & Satisfaction) ===
+  const guestExpData = [
+    {
+      restaurant: "Carna at Baha Mar",
+      avgDiningDuration: 145,
+      repeatGuests: 7.8,
+      totalRepeatGuests: 163,
+      vipGuestVisits: 11,
+      avgWaitTime: 0,
+      surveyVenueScore: 4.3
+    },
+    {
+      restaurant: "Marcus at Baha Mar Fish + Chop House",
+      avgDiningDuration: 118,
+      repeatGuests: 6.7,
+      totalRepeatGuests: 175,
+      vipGuestVisits: 14,
+      avgWaitTime: 0,
+      surveyVenueScore: 4.8
+    },
+    {
+      restaurant: "The Swimming Pig",
+      avgDiningDuration: 111,
+      repeatGuests: 6.3,
+      totalRepeatGuests: 66,
+      vipGuestVisits: 0,
+      avgWaitTime: 0,
+      surveyVenueScore: 4.0
+    },
+    {
+      restaurant: "Shuang Ba",
+      avgDiningDuration: 100,
+      repeatGuests: 9.8,
+      totalRepeatGuests: 92,
+      vipGuestVisits: 9,
+      avgWaitTime: 0,
+      surveyVenueScore: 4.9
+    },
+    {
+      restaurant: "Leola by Scott Conant",
+      avgDiningDuration: 98,
+      repeatGuests: 4.7,
+      totalRepeatGuests: 63,
+      vipGuestVisits: 12,
+      avgWaitTime: 0,
+      surveyVenueScore: 4.4
+    },
+    {
+      restaurant: "Cinko Asian Latino Grill",
+      avgDiningDuration: 97,
+      repeatGuests: 11.2,
+      totalRepeatGuests: 134,
+      vipGuestVisits: 6,
+      avgWaitTime: 1,
+      surveyVenueScore: 5.0
+    },
+    {
+      restaurant: "Katsuya at Baha Mar",
+      avgDiningDuration: 95,
+      repeatGuests: 9.1,
+      totalRepeatGuests: 220,
+      vipGuestVisits: 13,
+      avgWaitTime: 0,
+      surveyVenueScore: 4.4
+    },
+    {
+      restaurant: "Costa",
+      avgDiningDuration: 94,
+      repeatGuests: 7.9,
+      totalRepeatGuests: 149,
+      vipGuestVisits: 8,
+      avgWaitTime: 0,
+      surveyVenueScore: 3.1
+    }
+  ];
+
+  // === KPI tiles ===
+  function renderKpis(data) {
+    const totalRestaurants = data.length || 1;
+    const avgSurvey =
+      data.reduce((sum, r) => sum + r.surveyVenueScore, 0) / totalRestaurants || 0;
+    const avgRepeat =
+      data.reduce((sum, r) => sum + r.repeatGuests, 0) / totalRestaurants || 0;
+    const avgDuration =
+      data.reduce((sum, r) => sum + r.avgDiningDuration, 0) / totalRestaurants || 0;
+
+    const kpis = [
+      {
+        id: "kpi-total",
+        label: "Avg Survey Score",
+        value: avgSurvey.toFixed(2),
+        sub: "Across all restaurants"
+      },
+      {
+        id: "kpi-avg-cover",
+        label: "Repeat Guests %",
+        value: avgRepeat.toFixed(2) + "%",
+        sub: "Average repeat rate"
+      },
+      {
+        id: "kpi-revpash",
+        label: "Avg Dining Duration",
+        value: Math.round(avgDuration) + " min",
+        sub: "Mean seated time"
+      }
+    ];
+
+    kpis.forEach(kpi => {
+      const el = document.getElementById(kpi.id);
+      if (!el) return;
+      el.innerHTML = `
+        <div class="kpi-label">${kpi.label}</div>
+        <div class="kpi-value">${kpi.value}</div>
+        <div class="kpi-sub">${kpi.sub}</div>
+      `;
+    });
+  }
+
+  // === Charts ===
+  function initCharts(data) {
+    const labels = data.map(r => r.restaurant);
+
+    function makeLollipopChart(canvasId, field, label, maxY) {
+      const ctx = document.getElementById(canvasId);
+      const values = data.map(r => r[field]);
+
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              // thin horizontal bar from left to value
+              type: "bar",
+              label,
+              data: values,
+            },
+            {
+              // dot at the end of each bar
+              type: "scatter",
+              data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
+              showLine: false,
+            }
+          ]
+        },
+        options: {
+          indexAxis: "y", // restaurants on the left
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, max: maxY || undefined },
+            y: {}
+          }
+        }
+      });
+    }
+
+    // Survey score (0-5)
+    makeLollipopChart("surveyChart", "surveyVenueScore", "Survey score", 5);
+    // Repeat guests % (auto-scale)
+    makeLollipopChart("repeatChart", "repeatGuests", "Repeat guests %");
+    // Avg dining duration in minutes (auto-scale)
+    makeLollipopChart("durationChart", "avgDiningDuration", "Avg dining duration (min)");
+  }
+
+  // === jsGrid table ===
+  function initGrid(data) {
+    $("#guestExpGrid").jsGrid({
+      width: "100%",
+      height: "auto",
+      inserting: false,
+      editing: false,
+      sorting: true,
+      paging: false,
+      autoload: true,
+      data,
+      fields: [
+        { name: "restaurant", title: "Restaurant", type: "text", width: 150 },
+        { name: "avgDiningDuration", title: "AVG Dining Duration (min)", type: "number", width: 70 },
+        { name: "repeatGuests", title: "Repeat Guests %", type: "number", width: 60 },
+        { name: "totalRepeatGuests", title: "Total Repeat Guests", type: "number", width: 60 },
+        { name: "vipGuestVisits", title: "VIP Guest Visits", type: "number", width: 60 },
+        { name: "avgWaitTime", title: "AVG Wait Time (min)", type: "number", width: 60 },
+        { name: "surveyVenueScore", title: "Survey Venue Score", type: "number", width: 60 }
+      ]
+    });
+  }
+
+  // Initialize
+  renderKpis(guestExpData);
+  initCharts(guestExpData);
+  initGrid(guestExpData);
+
+  // Navigate between dashboard pages based on report type selection
+  document.addEventListener("DOMContentLoaded", function () {
+    const reportSelect = document.getElementById("reportTypeSelect");
+    if (!reportSelect) return;
+
+    reportSelect.addEventListener("change", function () {
+      const target = this.value;
+      if (target) {
+        window.location.href = target;
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
