@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Restaurant Dashboard Demo</title>
 
   <!-- Chart.js -->
@@ -177,14 +177,26 @@
       margin-bottom: 12px;
     }
 
-    .summary-grid {
+    /* Live layout grids */
+    .kpi-top-row {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .fullwidth-chart {
+      margin-bottom: 16px;
+    }
+
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 16px;
     }
 
-    .summary-col {
+    .two-col-item {
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -444,7 +456,11 @@
         grid-template-columns: 1fr;
       }
 
-      .summary-grid {
+      .kpi-top-row {
+        grid-template-columns: 1fr;
+      }
+
+      .two-col-grid {
         grid-template-columns: 1fr;
       }
       .page-wrapper {
@@ -529,22 +545,24 @@
           </div>
         </div>
 
-        <!-- KPI + Charts grid -->
-        <div class="summary-grid">
-          <!-- Live revenue column -->
-          <div class="summary-col">
-            <div class="kpi-card" id="kpi-total"></div>
-            <div class="chart-card">
-              <div class="chart-title">Today’s revenue by restaurant</div>
-              <div class="chart-card-inner">
-                <canvas id="reservationsChart"></canvas>
-              </div>
-            </div>
-          </div>
+        <!-- Top KPIs -->
+        <div class="kpi-top-row">
+          <div class="kpi-card" id="kpi-today"></div>
+          <div class="kpi-card" id="kpi-projected"></div>
+        </div>
 
-          <!-- Live occupancy column -->
-          <div class="summary-col">
-            <div class="kpi-card" id="kpi-avg-cover"></div>
+        <!-- Full width revenue chart -->
+        <div class="chart-card fullwidth-chart">
+          <div class="chart-title">Today’s revenue vs projected daily revenue</div>
+          <div class="chart-card-inner">
+            <canvas id="reservationsChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Two-column operational KPIs + charts -->
+        <div class="two-col-grid">
+          <div class="two-col-item">
+            <div class="kpi-card" id="kpi-covers"></div>
             <div class="chart-card">
               <div class="chart-title">Current occupancy % by restaurant</div>
               <div class="chart-card-inner">
@@ -553,9 +571,8 @@
             </div>
           </div>
 
-          <!-- Live waitlist column -->
-          <div class="summary-col">
-            <div class="kpi-card" id="kpi-revpash"></div>
+          <div class="two-col-item">
+            <div class="kpi-card" id="kpi-wait"></div>
             <div class="chart-card">
               <div class="chart-title">Guests waiting by restaurant</div>
               <div class="chart-card-inner">
@@ -570,7 +587,7 @@
           <div class="availability-header">
             <div>
               <div class="availability-title">Available Reservations</div>
-              <div class="availability-subtitle">Per restaurant · by guest count</div>
+              <div class="availability-subtitle">Per restaurant · by time slot · tap a time to view capacity</div>
             </div>
             <div class="guest-count-control">
               <span class="filter-label">Guests per party</span>
@@ -717,6 +734,7 @@
         seatsInUse: 98,
         capacity: 120,
         todaysRevenue: 24320,
+        projectedDailyRevenue: 39200,
         revenueTarget: 28000,
         coversSeated: 310,
         showRatePct: 93,
@@ -731,6 +749,7 @@
         seatsInUse: 110,
         capacity: 122,
         todaysRevenue: 28350,
+        projectedDailyRevenue: 42000,
         revenueTarget: 30000,
         coversSeated: 345,
         showRatePct: 95,
@@ -745,6 +764,7 @@
         seatsInUse: 75,
         capacity: 110,
         todaysRevenue: 16340,
+        projectedDailyRevenue: 26000,
         revenueTarget: 19000,
         coversSeated: 240,
         showRatePct: 91,
@@ -759,6 +779,7 @@
         seatsInUse: 63,
         capacity: 80,
         todaysRevenue: 18780,
+        projectedDailyRevenue: 31000,
         revenueTarget: 21000,
         coversSeated: 205,
         showRatePct: 96,
@@ -773,6 +794,7 @@
         seatsInUse: 55,
         capacity: 90,
         todaysRevenue: 14210,
+        projectedDailyRevenue: 24000,
         revenueTarget: 18000,
         coversSeated: 180,
         showRatePct: 89,
@@ -787,6 +809,7 @@
         seatsInUse: 79,
         capacity: 90,
         todaysRevenue: 19890,
+        projectedDailyRevenue: 30000,
         revenueTarget: 20000,
         coversSeated: 220,
         showRatePct: 97,
@@ -801,6 +824,7 @@
         seatsInUse: 96,
         capacity: 112,
         todaysRevenue: 25580,
+        projectedDailyRevenue: 40000,
         revenueTarget: 27000,
         coversSeated: 305,
         showRatePct: 94,
@@ -815,6 +839,7 @@
         seatsInUse: 58,
         capacity: 90,
         todaysRevenue: 15120,
+        projectedDailyRevenue: 25000,
         revenueTarget: 18000,
         coversSeated: 190,
         showRatePct: 90,
@@ -827,24 +852,33 @@
     // === KPI tiles (live) ===
     function renderKpis(data) {
       const totalRevenue = data.reduce((sum, r) => sum + r.todaysRevenue, 0);
-      const totalCovers = data.reduce((sum, r) => sum + r.coversSeated, 0);
-      const totalWaitlist = data.reduce((sum, r) => sum + r.waitlistGuests, 0);
+      const totalProjected = data.reduce((sum, r) => sum + (r.projectedDailyRevenue || 0), 0);
+      const totalCovers = data.reduce((sum, r) => sum + (r.coversSeated || 0), 0);
+      const totalWaitlist = data.reduce((sum, r) => sum + (r.waitlistGuests || 0), 0);
+
+      const pctToProjection = totalProjected ? (totalRevenue / totalProjected) * 100 : 0;
 
       const kpis = [
         {
-          id: "kpi-total",
+          id: "kpi-today",
           label: "Today’s Revenue",
           value: "$" + totalRevenue.toLocaleString("en-US"),
-          sub: "All restaurants · live total"
+          sub: "All restaurants · actual so far"
         },
         {
-          id: "kpi-avg-cover",
+          id: "kpi-projected",
+          label: "Projected Daily Revenue",
+          value: "$" + totalProjected.toLocaleString("en-US"),
+          sub: "Forecasted total for today · " + pctToProjection.toFixed(0) + "% complete"
+        },
+        {
+          id: "kpi-covers",
           label: "Covers Seated Today",
           value: totalCovers.toLocaleString("en-US"),
           sub: "Estimated guests served so far"
         },
         {
-          id: "kpi-revpash",
+          id: "kpi-wait",
           label: "Guests Waiting Now",
           value: totalWaitlist.toLocaleString("en-US"),
           sub: "Waiting to be seated"
@@ -862,11 +896,52 @@
       });
     }
 
-    // === Charts (horizontal lollipop style, live metrics) ===
+    // === Charts (live metrics) ===
     function initCharts(data) {
       const labels = data.map(r => r.restaurant);
 
+      function destroyIfExists(canvasId) {
+        const el = document.getElementById(canvasId);
+        if (!el) return;
+        const existing = Chart.getChart(el);
+        if (existing) existing.destroy();
+      }
+
+      // 1) Today’s revenue vs projected daily revenue (horizontal bars)
+      destroyIfExists("reservationsChart");
+      const revCtx = document.getElementById("reservationsChart");
+      if (revCtx) {
+        new Chart(revCtx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Projected",
+                data: data.map(r => r.projectedDailyRevenue || 0)
+              },
+              {
+                label: "Actual so far",
+                data: data.map(r => r.todaysRevenue)
+              }
+            ]
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { beginAtZero: true },
+              y: {}
+            }
+          }
+        });
+      }
+
+      // 2) Current occupancy % by restaurant (keep lollipop style)
       function makeLollipopChart(canvasId, values, label, maxX) {
+        destroyIfExists(canvasId);
         const ctx = document.getElementById(canvasId);
         if (!ctx) return;
 
@@ -900,16 +975,9 @@
         });
       }
 
-      // Today’s revenue by restaurant
-      const revenueValues = data.map(r => r.todaysRevenue);
-
-      // Current occupancy % by restaurant
       const occupancyValues = data.map(r => r.currentOccupancyPct);
-
-      // Guests waiting by restaurant
       const waitlistValues = data.map(r => r.waitlistGuests);
 
-      makeLollipopChart("reservationsChart", revenueValues, "Today’s revenue");
       makeLollipopChart("seatedChart", occupancyValues, "Current occupancy %", 100);
       makeLollipopChart("noShowChart", waitlistValues, "Guests waiting");
     }
@@ -932,6 +1000,19 @@
           { name: "seatsInUse", title: "Seats in Use", type: "number", width: 60 },
           { name: "capacity", title: "Capacity", type: "number", width: 60 },
           { name: "todaysRevenue", title: "Today’s Revenue ($)", type: "number", width: 80 },
+          { name: "projectedDailyRevenue", title: "Projected Daily ($)", type: "number", width: 90 },
+          {
+            name: "pctToProjection",
+            title: "% to Proj",
+            type: "text",
+            width: 70,
+            sorting: false,
+            itemTemplate: function(_, item) {
+              const proj = item.projectedDailyRevenue || 0;
+              const pct = proj ? (item.todaysRevenue / proj) * 100 : 0;
+              return pct.toFixed(0) + "%";
+            }
+          },
           { name: "coversSeated", title: "Covers Seated", type: "number", width: 60 },
           { name: "showRatePct", title: "Show Rate %", type: "number", width: 60 },
           { name: "waitlistGuests", title: "Waitlist Guests", type: "number", width: 60 },
