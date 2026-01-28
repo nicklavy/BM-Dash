@@ -156,6 +156,89 @@
       background: #fff;
     }
 
+    /* Dropdown multi-select */
+.ms { position: relative; width: 100%; }
+
+.ms-trigger{
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+}
+
+.ms-menu{
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft);
+  padding: 6px;
+  max-height: 240px;
+  overflow: auto;
+  display: none;
+  z-index: 50;
+  text-align: left;
+  color: var(--text-main);
+}
+
+.ms-menu.is-open{ display:block; }
+
+.ms-item{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  padding:8px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  user-select:none;
+  font-size:13px;
+  line-height: 1.2;
+}
+.ms-item:hover{ background:#f3f3f6; }
+.ms-item input{
+  margin:0;
+  flex: 0 0 auto;
+}
+.ms-item span{
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  color: var(--text-main);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.ms-item input[type="checkbox"]{
+  width: 16px;
+  height: 16px;
+}
+
+.ms-divider{
+  height:1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+
+.ms-menu * { text-align: left; }
+@media (min-width: 901px) {
+  .ms-menu {
+    min-width: 360px;
+  }
+}
+
+
     .btn-primary {
       padding: 8px 14px;
       border-radius: 999px;
@@ -522,7 +605,7 @@
             <span class="filter-label">Type of Report</span>
             <div class="filter-control">
               <select id="reportTypeSelect">
-                <option value="Dashboard-BMar-LiveReport.html" selected>Live Operations</option>
+                <option value="index.html" selected>Live Operations</option>
                 <option value="Dashboard-BMar-Revenue.html">Revenue &amp; Performance</option>
                 <option value="Dashboard-BMar-GuestExperience.html">Guest Experience &amp; Satisfaction</option>
                 <option value="Dashboard-BMar-Occupancy.html">Occupancy &amp; Table Utilization</option>
@@ -531,9 +614,34 @@
             </div>
           </div>
 
-          <div class="filter-group">
-            
-          </div>
+         <div class="filter-group">
+  <span class="filter-label">Restaurants</span>
+  <div class="filter-control">
+    <div class="ms" id="restaurantMs">
+      <button type="button" class="ms-trigger" id="restaurantMsTrigger" aria-haspopup="listbox" aria-expanded="false">
+        <span id="restaurantMsLabel">View all</span>
+        <i class="bi bi-chevron-down"></i>
+      </button>
+
+      <div class="ms-menu" id="restaurantMsMenu" role="listbox" aria-multiselectable="true">
+        <label class="ms-item">
+          <input type="checkbox" value="ALL" checked />
+          <span>View all</span>
+        </label>
+        <div class="ms-divider"></div>
+
+        <label class="ms-item"><input type="checkbox" value="Carna at Baha Mar" /> <span>Carna at Baha Mar</span></label>
+        <label class="ms-item"><input type="checkbox" value="Marcus at Baha Mar Fish + Chop House" /> <span>Marcus at Baha Mar Fish + Chop House</span></label>
+        <label class="ms-item"><input type="checkbox" value="The Swimming Pig" /> <span>The Swimming Pig</span></label>
+        <label class="ms-item"><input type="checkbox" value="Shuang Ba" /> <span>Shuang Ba</span></label>
+        <label class="ms-item"><input type="checkbox" value="Leola by Scott Conant" /> <span>Leola by Scott Conant</span></label>
+        <label class="ms-item"><input type="checkbox" value="Cinko Asian Latino Grill" /> <span>Cinko Asian Latino Grill</span></label>
+        <label class="ms-item"><input type="checkbox" value="Katsuya at Baha Mar" /> <span>Katsuya at Baha Mar</span></label>
+        <label class="ms-item"><input type="checkbox" value="Costa" /> <span>Costa</span></label>
+      </div>
+    </div>
+  </div>
+</div>
 
           <div class="filter-group">
             
@@ -939,7 +1047,7 @@
         });
       }
 
-      // 2) Current occupancy % by restaurant (keep lollipop style)
+      // 2) Current occupancy % by restaurant (bar-only, no dot)
       function makeLollipopChart(canvasId, values, label, maxX) {
         destroyIfExists(canvasId);
         const ctx = document.getElementById(canvasId);
@@ -951,14 +1059,8 @@
             labels,
             datasets: [
               {
-                type: "bar",
                 label,
                 data: values
-              },
-              {
-                type: "scatter",
-                data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
-                showLine: false
               }
             ]
           },
@@ -1038,6 +1140,69 @@
           window.location.href = target;
         }
       });
+
+      // Restaurant multi-select behavior (demo):
+      // - Default: View all selected
+      // - If any restaurant is selected, unselect View all
+      // - If View all is selected, clear other selections
+      // Restaurants dropdown multi-select (demo)
+const ms = document.getElementById("restaurantMs");
+const msTrigger = document.getElementById("restaurantMsTrigger");
+const msMenu = document.getElementById("restaurantMsMenu");
+const msLabel = document.getElementById("restaurantMsLabel");
+
+function closeMs() {
+  if (!msMenu) return;
+  msMenu.classList.remove("is-open");
+  if (msTrigger) msTrigger.setAttribute("aria-expanded", "false");
+}
+function openMs() {
+  if (!msMenu) return;
+  msMenu.classList.add("is-open");
+  if (msTrigger) msTrigger.setAttribute("aria-expanded", "true");
+}
+function updateMsLabel() {
+  if (!msMenu || !msLabel) return;
+  const checks = Array.from(msMenu.querySelectorAll('input[type="checkbox"]'));
+  const all = checks.find(c => c.value === "ALL");
+  const selected = checks.filter(c => c.checked && c.value !== "ALL").map(c => c.value);
+
+  if (all && all.checked) msLabel.textContent = "View all";
+  else if (selected.length === 0) { if (all) all.checked = true; msLabel.textContent = "View all"; }
+  else if (selected.length === 1) msLabel.textContent = selected[0];
+  else msLabel.textContent = selected.length + " selected";
+}
+
+if (msTrigger && msMenu) {
+  msTrigger.addEventListener("click", function (e) {
+    e.stopPropagation();
+    msMenu.classList.contains("is-open") ? closeMs() : openMs();
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!ms) return;
+    if (!ms.contains(e.target)) closeMs();
+  });
+
+  msMenu.addEventListener("change", function (e) {
+    const target = e.target;
+    if (!target || target.type !== "checkbox") return;
+
+    const checks = Array.from(msMenu.querySelectorAll('input[type="checkbox"]'));
+    const all = checks.find(c => c.value === "ALL");
+
+    if (target.value === "ALL") {
+      if (all && all.checked) checks.forEach(c => { if (c.value !== "ALL") c.checked = false; });
+    } else {
+      if (all) all.checked = false;
+      const anySelected = checks.some(c => c.checked && c.value !== "ALL");
+      if (!anySelected && all) all.checked = true;
+    }
+    updateMsLabel();
+  });
+
+  updateMsLabel();
+}
     });
   </script>
 
