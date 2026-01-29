@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Restaurant Dashboard Demo</title>
 
   <!-- Chart.js -->
@@ -121,7 +121,7 @@
     /* Top filter bar */
     .filters {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
       padding-top: 20px;
       margin-bottom: 16px;
@@ -154,6 +154,90 @@
       border-radius: 8px;
       border: 1px solid var(--border);
       background: #fff;
+    }
+
+    /* Dropdown multi-select */
+    .ms { position: relative; width: 100%; }
+
+    .ms-trigger{
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .ms-menu{
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow-soft);
+      padding: 6px;
+      max-height: 240px;
+      overflow: auto;
+      display: none;
+      z-index: 50;
+      text-align: left;
+      color: var(--text-main);
+    }
+
+    .ms-menu.is-open{ display:block; }
+
+    .ms-item{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      user-select:none;
+      font-size:13px;
+      line-height: 1.2;
+    }
+
+    .ms-item:hover{ background:#f3f3f6; }
+
+    .ms-item input{
+      margin:0;
+      flex: 0 0 auto;
+    }
+
+    .ms-item input[type="checkbox"]{
+      width: 16px;
+      height: 16px;
+    }
+
+    .ms-item span{
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: left;
+      color: var(--text-main);
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .ms-divider{
+      height:1px;
+      background: var(--border);
+      margin: 6px 0;
+    }
+
+    .ms-menu * { text-align: left; }
+
+    @media (min-width: 901px) {
+      .ms-menu { min-width: 360px; }
     }
 
     .btn-primary {
@@ -223,6 +307,17 @@
       gap: 12px;
       margin-bottom: 16px;
     }
+
+    /* Cancellation row: make stacked bar wider than pie on desktop */
+.cancel-row {
+  grid-template-columns: 2fr 1fr;
+}
+
+@media (max-width: 900px) {
+  .cancel-row {
+    grid-template-columns: 1fr;
+  }
+}
 
     .chart-card {
       width: 100%;
@@ -399,6 +494,34 @@
           </div>
 
           <div class="filter-group">
+            <span class="filter-label">Restaurants</span>
+            <div class="filter-control">
+              <div class="ms" id="restaurantMs">
+                <button type="button" class="ms-trigger" id="restaurantMsTrigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span id="restaurantMsLabel">View all</span>
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+
+                <div class="ms-menu" id="restaurantMsMenu" role="listbox" aria-multiselectable="true">
+                  <label class="ms-item">
+                    <input type="checkbox" value="ALL" checked />
+                    <span>View all</span>
+                  </label>
+                  <div class="ms-divider"></div>
+                  <label class="ms-item"><input type="checkbox" value="Carna at Baha Mar" /> <span>Carna at Baha Mar</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Marcus at Baha Mar Fish + Chop House" /> <span>Marcus at Baha Mar Fish + Chop House</span></label>
+                  <label class="ms-item"><input type="checkbox" value="The Swimming Pig" /> <span>The Swimming Pig</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Shuang Ba" /> <span>Shuang Ba</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Leola by Scott Conant" /> <span>Leola by Scott Conant</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Cinko Asian Latino Grill" /> <span>Cinko Asian Latino Grill</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Katsuya at Baha Mar" /> <span>Katsuya at Baha Mar</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Costa" /> <span>Costa</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group">
             <span class="filter-label">Shift</span>
             <div class="filter-control">
               <select>
@@ -470,6 +593,24 @@
             </div>
           </div>
         </div>
+
+        <!-- Cancellation timing (stacked) -->
+       <!-- Cancellation timing -->
+<div class="charts-row cancel-row" style="margin-bottom:16px;">
+  <div class="chart-card">
+    <div class="chart-title">Cancellation lead time distribution (relative to reservation time)</div>
+    <div class="chart-card-inner" style="height:260px;">
+      <canvas id="cancelLeadTimeChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Cancellation lead time (overall)</div>
+    <div class="chart-card-inner" style="height:260px;">
+      <canvas id="cancelLeadTimePie"></canvas>
+    </div>
+  </div>
+</div>
 
         <!-- Table -->
         <div class="table-card">
@@ -666,14 +807,8 @@
             labels,
             datasets: [
               {
-                type: "bar",
                 label,
                 data: values
-              },
-              {
-                type: "scatter",
-                data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
-                showLine: false
               }
             ]
           },
@@ -706,6 +841,111 @@
       makeLollipopChart("reservationsChart", coversValues, "Estimated covers seated");
       makeLollipopChart("seatedChart", showRateValues, "Show rate %", 100);
       makeLollipopChart("noShowChart", guestShareValues, "Direct guest booking %", 100);
+
+      // 4) Cancellation lead time buckets (demo): <24h, 24–48h, 48–120h, >120h
+      const cancelCtx = document.getElementById("cancelLeadTimeChart");
+      if (cancelCtx) {
+        const existing = Chart.getChart(cancelCtx);
+        if (existing) existing.destroy();
+
+        // Build a believable distribution per restaurant using the cancelled count
+        const buckets = ["<24 hrs", "24–48 hrs", "48–120 hrs", ">120 hrs"];
+        const perRestaurant = data.map(r => {
+          const c = Math.max(0, Number(r.cancelled) || 0);
+          // weighted split: more cancellations tend to happen closer-in
+          const w = [0.46, 0.22, 0.20, 0.12];
+          const raw = w.map(p => Math.round(c * p));
+          // adjust rounding to match total cancelled
+          let diff = c - raw.reduce((s, n) => s + n, 0);
+          let i = 0;
+          while (diff !== 0 && i < 50) {
+            const idx = diff > 0 ? (i % raw.length) : (raw.length - 1 - (i % raw.length));
+            raw[idx] = Math.max(0, raw[idx] + (diff > 0 ? 1 : -1));
+            diff = c - raw.reduce((s, n) => s + n, 0);
+            i++;
+          }
+          return raw;
+        });
+
+       const bucketColors = [
+  "rgba(255, 99, 132, 0.85)", // <24
+  "rgba(255, 159, 64, 0.75)", // 24–48
+  "rgba(2550, 205, 86, 0.65)", // 48–120
+  "rgba(75, 192, 192, 0.45)"  // >120
+];
+
+const ds = buckets.map((b, bi) => ({
+  label: b,
+  data: perRestaurant.map(arr => arr[bi]),
+  backgroundColor: bucketColors[bi]
+}));
+
+// Totals across all restaurants (for pie)
+const totals = buckets.map((_, bi) =>
+  perRestaurant.reduce((sum, arr) => sum + (arr[bi] || 0), 0)
+);
+
+const pieCtx = document.getElementById("cancelLeadTimePie");
+if (pieCtx) {
+  const existingPie = Chart.getChart(pieCtx);
+  if (existingPie) existingPie.destroy();
+
+  new Chart(pieCtx, {
+    type: "pie",
+    data: {
+      labels: buckets,
+      datasets: [
+        {
+          data: totals,
+          backgroundColor: bucketColors
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed || 0;
+              const total = totals.reduce((s, n) => s + n, 0) || 1;
+              const pct = (v / total) * 100;
+              return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+        new Chart(cancelCtx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: ds
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "bottom" },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.x}`
+                }
+              }
+            },
+            scales: {
+              x: { stacked: true, beginAtZero: true, title: { display: true, text: "# of cancellations" } },
+              y: { stacked: true }
+            }
+          }
+        });
+      }
     }
 
     // === jsGrid table ===
@@ -752,6 +992,77 @@
           window.location.href = target;
         }
       });
+
+      // Restaurants dropdown multi-select (demo)
+      const ms = document.getElementById("restaurantMs");
+      const msTrigger = document.getElementById("restaurantMsTrigger");
+      const msMenu = document.getElementById("restaurantMsMenu");
+      const msLabel = document.getElementById("restaurantMsLabel");
+
+      function closeMs() {
+        if (!msMenu) return;
+        msMenu.classList.remove("is-open");
+        if (msTrigger) msTrigger.setAttribute("aria-expanded", "false");
+      }
+
+      function openMs() {
+        if (!msMenu) return;
+        msMenu.classList.add("is-open");
+        if (msTrigger) msTrigger.setAttribute("aria-expanded", "true");
+      }
+
+      function updateMsLabel() {
+        if (!msMenu || !msLabel) return;
+        const checks = Array.from(msMenu.querySelectorAll('input[type="checkbox"]'));
+        const all = checks.find(c => c.value === "ALL");
+        const selected = checks.filter(c => c.checked && c.value !== "ALL").map(c => c.value);
+
+        if (all && all.checked) {
+          msLabel.textContent = "View all";
+        } else if (selected.length === 0) {
+          if (all) all.checked = true;
+          msLabel.textContent = "View all";
+        } else if (selected.length === 1) {
+          msLabel.textContent = selected[0];
+        } else {
+          msLabel.textContent = selected.length + " selected";
+        }
+      }
+
+      if (msTrigger && msMenu) {
+        msTrigger.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (msMenu.classList.contains("is-open")) closeMs();
+          else openMs();
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!ms) return;
+          if (!ms.contains(e.target)) closeMs();
+        });
+
+        msMenu.addEventListener("change", function (e) {
+          const target = e.target;
+          if (!target || target.type !== "checkbox") return;
+
+          const checks = Array.from(msMenu.querySelectorAll('input[type="checkbox"]'));
+          const all = checks.find(c => c.value === "ALL");
+
+          if (target.value === "ALL") {
+            if (all && all.checked) {
+              checks.forEach(c => { if (c.value !== "ALL") c.checked = false; });
+            }
+          } else {
+            if (all) all.checked = false;
+            const anySelected = checks.some(c => c.checked && c.value !== "ALL");
+            if (!anySelected && all) all.checked = true;
+          }
+
+          updateMsLabel();
+        });
+
+        updateMsLabel();
+      }
     });
   </script>
 
