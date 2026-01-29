@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Restaurant Dashboard Demo</title>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
 
   <!-- jsGrid -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsgrid@1.5.3/dist/jsgrid.min.css">
@@ -121,7 +122,7 @@
     /* Top filter bar */
     .filters {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
       padding-top: 20px;
       margin-bottom: 16px;
@@ -154,6 +155,90 @@
       border-radius: 8px;
       border: 1px solid var(--border);
       background: #fff;
+    }
+
+    /* Dropdown multi-select */
+    .ms { position: relative; width: 100%; }
+
+    .ms-trigger{
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .ms-menu{
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow-soft);
+      padding: 6px;
+      max-height: 240px;
+      overflow: auto;
+      display: none;
+      z-index: 50;
+      text-align: left;
+      color: var(--text-main);
+    }
+
+    .ms-menu.is-open{ display:block; }
+
+    .ms-item{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      user-select:none;
+      font-size:13px;
+      line-height: 1.2;
+    }
+
+    .ms-item:hover{ background:#f3f3f6; }
+
+    .ms-item input{
+      margin:0;
+      flex: 0 0 auto;
+    }
+
+    .ms-item input[type="checkbox"]{
+      width: 16px;
+      height: 16px;
+    }
+
+    .ms-item span{
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: left;
+      color: var(--text-main);
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .ms-divider{
+      height:1px;
+      background: var(--border);
+      margin: 6px 0;
+    }
+
+    .ms-menu * { text-align: left; }
+
+    @media (min-width: 901px) {
+      .ms-menu { min-width: 360px; }
     }
 
     .btn-primary {
@@ -240,7 +325,10 @@
 
     .chart-card-inner {
       position: relative;
-      height: 220px;
+      height: 260px;
+    }
+    .chart-card-inner.heatmap {
+      height: 320px;
     }
 
     .chart-card canvas {
@@ -396,6 +484,35 @@
             </select>
             </div>
           </div>
+          <div class="filter-group">
+            <span class="filter-label">Restaurants</span>
+            <div class="filter-control">
+              <div class="ms" id="restaurantMs">
+                <button type="button" class="ms-trigger" id="restaurantMsTrigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span id="restaurantMsLabel">View all</span>
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+
+                <div class="ms-menu" id="restaurantMsMenu" role="listbox" aria-multiselectable="true">
+                  <label class="ms-item">
+                    <input type="checkbox" value="ALL" checked />
+                    <span>View all</span>
+                  </label>
+                  <div class="ms-divider"></div>
+                  <label class="ms-item"><input type="checkbox" value="The Swimming Pig" /> <span>The Swimming Pig</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Sugar Factory" /> <span>Sugar Factory</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Shuang Ba" /> <span>Shuang Ba</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Marcus at Baha Mar Fish + Chop House" /> <span>Marcus at Baha Mar Fish + Chop House</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Carna at Baha Mar" /> <span>Carna at Baha Mar</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Costa" /> <span>Costa</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Café Boulud" /> <span>Café Boulud</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Leola by Scott Conant" /> <span>Leola by Scott Conant</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Katsuya at Baha Mar" /> <span>Katsuya at Baha Mar</span></label>
+                  <label class="ms-item"><input type="checkbox" value="Cinko Asian Latino Grill" /> <span>Cinko Asian Latino Grill</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="filter-group">
             <span class="filter-label">Shift</span>
@@ -467,6 +584,15 @@
                 <canvas id="turnoverChart"></canvas>
               </div>
             </div>
+          </div>
+        </div>
+
+
+        <!-- Occupancy Heatmap (Option C) -->
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-title">Occupancy by Time of Day</div>
+          <div class="chart-card-inner heatmap">
+            <canvas id="occupancyHeatmap"></canvas>
           </div>
         </div>
 
@@ -748,6 +874,27 @@
 
 
   // === Charts ===
+
+  function timeToMinutes(t) {
+    if (!t) return null;
+    const parts = t.trim().split(/\s+/);
+    if (parts.length < 2) return null;
+    const time = parts[0];
+    const period = parts[1].toUpperCase();
+    let [h, m] = time.split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    if (period === "PM" && h !== 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return h * 60 + m;
+  }
+
+  function truncateLabel(str, max = 18) {
+    const s = String(str ?? "");
+    if (s.length <= max) return s;
+    return s.slice(0, Math.max(0, max - 1)) + "…";
+  }
+
+
   function initCharts(data) {
     const labels = data.map((r) => r.restaurant);
 
@@ -766,13 +913,7 @@
               type: "bar",
               label,
               data: values,
-            },
-            {
-              // dot at the end of each bar
-              type: "scatter",
-              data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
-              showLine: false,
-            },
+            }
           ],
         },
         options: {
@@ -780,11 +921,136 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
+          layout: { padding: { left: 10 } },
           scales: {
             x: { beginAtZero: true, max: maxX || undefined },
-            y: {},
+            y: {
+              ticks: {
+  autoSkip: false,
+  font: { size: 11 },
+  padding: 6,
+  callback: function (value) {
+    const label = this.getLabelForValue(value);
+    return truncateLabel(label, 20);
+  }
+}
+            }
           },
         },
+      });
+    }
+
+    // ===== Option C: Occupancy heatmap by 15-minute interval (demo) =====
+    const heatCtx = document.getElementById("occupancyHeatmap");
+    if (heatCtx) {
+      const existingHeat = Chart.getChart(heatCtx);
+      if (existingHeat) existingHeat.destroy();
+
+      // Demo window (evening service) — adjust later based on shift
+      const timeSlots = ["7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM"];
+
+      // Build demo occupancy values using each restaurant's occupancyRate as a baseline
+      // v is 0–100 (occupancy %)
+      const heatData = [];
+data.forEach((r) => {
+  const base = Math.max(0, Math.min(100, Number(r.occupancyRate) || 0));
+  const peakMin = timeToMinutes(r.peakTime);
+
+  timeSlots.forEach((slotLabel) => {
+    const slotMin = timeToMinutes(slotLabel);
+
+    let curve = 0.85;
+    if (peakMin !== null && slotMin !== null) {
+      const dist = Math.abs(slotMin - peakMin);
+      curve = Math.max(0.35, 1 - dist / 240);
+    }
+
+    const jitter = (Math.random() * 14) - 7;
+    const v = Math.max(0, Math.min(100, Math.round(base * curve + jitter)));
+
+    heatData.push({ x: slotLabel, y: r.restaurant, v });
+  });
+});
+
+      new Chart(heatCtx, {
+        type: "matrix",
+        data: {
+          datasets: [
+            {
+              label: "Occupancy %",
+              data: heatData,
+              borderWidth: 1,
+              borderColor: "rgba(0,0,0,0.04)",
+              backgroundColor: (ctx) => {
+                const v = Math.max(0, Math.min(100, ctx.raw?.v ?? 0));
+
+                // Red heat scale:
+                // - higher v => more saturated, darker
+                // - lower v => less saturated, lighter
+                const sat = 20 + (v * 0.75);   // 20% -> 95%
+                const light = 96 - (v * 0.45); // 96% -> ~51%
+                const alpha = 0.35 + (v * 0.006); // 0.35 -> 0.95
+
+                // hsla gives us an easy “saturation” control
+                return `hsla(0, ${sat}%, ${light}%, ${alpha})`;
+              },
+              width: ({ chart }) => {
+                const area = chart.chartArea;
+                if (!area) return 10;
+                return (area.right - area.left) / timeSlots.length - 2;
+              },
+              height: ({ chart }) => {
+                const area = chart.chartArea;
+                if (!area) return 10;
+                return (area.bottom - area.top) / data.length - 2;
+              }
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+  const it = items?.[0];
+  if (!it) return "";
+  const rName = it.raw?.y || "";
+  const t = it.raw?.x || "";
+  return `${rName} · ${t}`;
+},
+                label: (ctx) => `Occupancy: ${ctx.raw?.v ?? 0}%`
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: "category",
+              labels: timeSlots,
+              grid: { display: false },
+              ticks: {
+                maxRotation: 0,
+                autoSkip: true
+              }
+            },
+            y: {
+              type: "category",
+              labels: data.map(r => r.restaurant),
+              grid: { display: false },
+              ticks: {
+                autoSkip: false,
+                font: { size: 11 },
+                padding: 6,
+                callback: function (value) {
+  const label = this.getLabelForValue(value);
+  return truncateLabel(label, 20);
+}
+              }
+            }
+          }
+        }
       });
     }
 
@@ -794,6 +1060,7 @@
     makeLollipopChart("coversChart", "coversServed", "Covers served %", 100);
     // Avg table turnover
     makeLollipopChart("turnoverChart", "avgTableTurnover", "Avg table turnover");
+
   }
 
 
@@ -816,8 +1083,6 @@
         { name: "occupiedCovers", title: "Occupied Covers", type: "number", width: 80 },
         { name: "maximumCovers", title: "Maximum Covers", type: "number", width: 80 },
         { name: "avgTableTurnover", title: "AVG Table Turnover", type: "number", width: 80 },
-        { name: "peakTime", title: "Peak Time", type: "text", width: 60 },
-        { name: "offPeakTime", title: "Off-Peak Time", type: "text", width: 60 },
       ],
     });
   }
@@ -839,6 +1104,77 @@
         window.location.href = target;
       }
     });
+
+    // Restaurants dropdown multi-select (demo)
+    const ms = document.getElementById("restaurantMs");
+    const msTrigger = document.getElementById("restaurantMsTrigger");
+    const msMenu = document.getElementById("restaurantMsMenu");
+    const msLabel = document.getElementById("restaurantMsLabel");
+
+    function closeMs() {
+      if (!msMenu) return;
+      msMenu.classList.remove("is-open");
+      if (msTrigger) msTrigger.setAttribute("aria-expanded", "false");
+    }
+
+    function openMs() {
+      if (!msMenu) return;
+      msMenu.classList.add("is-open");
+      if (msTrigger) msTrigger.setAttribute("aria-expanded", "true");
+    }
+
+    function updateMsLabel() {
+      if (!msMenu || !msLabel) return;
+      const checks = Array.from(msMenu.querySelectorAll('input[type="checkbox"]'));
+      const all = checks.find(c => c.value === "ALL");
+      const selected = checks.filter(c => c.checked && c.value !== "ALL").map(c => c.value);
+
+      if (all && all.checked) {
+        msLabel.textContent = "View all";
+      } else if (selected.length === 0) {
+        if (all) all.checked = true;
+        msLabel.textContent = "View all";
+      } else if (selected.length === 1) {
+        msLabel.textContent = selected[0];
+      } else {
+        msLabel.textContent = selected.length + " selected";
+      }
+    }
+
+    if (msTrigger && msMenu) {
+      msTrigger.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (msMenu.classList.contains("is-open")) closeMs();
+        else openMs();
+      });
+
+      document.addEventListener("click", function (e) {
+        if (!ms) return;
+        if (!ms.contains(e.target)) closeMs();
+      });
+
+      msMenu.addEventListener("change", function (e) {
+        const target = e.target;
+        if (!target || target.type !== "checkbox") return;
+
+        const checks = Array.from(msMenu.querySelectorAll('input[type="checkbox"]'));
+        const all = checks.find(c => c.value === "ALL");
+
+        if (target.value === "ALL") {
+          if (all && all.checked) {
+            checks.forEach(c => { if (c.value !== "ALL") c.checked = false; });
+          }
+        } else {
+          if (all) all.checked = false;
+          const anySelected = checks.some(c => c.checked && c.value !== "ALL");
+          if (!anySelected && all) all.checked = true;
+        }
+
+        updateMsLabel();
+      });
+
+      updateMsLabel();
+    }
   });
 </script>
 
