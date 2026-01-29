@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Restaurant Dashboard Demo</title>
 
   <!-- Chart.js -->
@@ -121,16 +121,24 @@
     /* Top filter bar */
     .filters {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
       padding-top: 20px;
       margin-bottom: 16px;
-      
       border-radius: var(--radius-lg);
-      
-      
       top: 0;
       z-index: 5;
+    }
+
+    .charts-row-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .chart-tall {
+      height: 260px;
     }
 
     .filter-group {
@@ -326,6 +334,9 @@
       .charts-row {
         grid-template-columns: 1fr;
       }
+      .charts-row-2 {
+        grid-template-columns: 1fr;
+      }
 
       .summary-grid {
         grid-template-columns: 1fr;
@@ -400,6 +411,23 @@
           </div>
 
           <div class="filter-group">
+            <span class="filter-label">Restaurant</span>
+            <div class="filter-control">
+              <select id="restaurantSelect">
+                <option value="ALL" selected>View all</option>
+                <option value="Cleo Mediterráneo at Baha Mar">Cleo Mediterráneo at Baha Mar</option>
+                <option value="Carna at Baha Mar">Carna at Baha Mar</option>
+                <option value="Marcus at Baha Mar Fish + Chop House">Marcus at Baha Mar Fish + Chop House</option>
+                <option value="Katsuya at Baha Mar">Katsuya at Baha Mar</option>
+                <option value="Costa">Costa</option>
+                <option value="Café Boulud">Café Boulud</option>
+                <option value="Shuang Ba">Shuang Ba</option>
+                <option value="Leola by Scott Conant">Leola by Scott Conant</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-group">
             <span class="filter-label">Shift</span>
             <div class="filter-control">
               <select>
@@ -468,6 +496,23 @@
               <div class="chart-card-inner">
                 <canvas id="revpashChart"></canvas>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional insights (demo) -->
+        <div class="charts-row-2">
+          <div class="chart-card">
+            <div class="chart-title">Top Revenue-Generating Servers</div>
+            <div class="chart-card-inner chart-tall">
+              <canvas id="topServersChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">Highest-Spending Guests</div>
+            <div class="chart-card-inner chart-tall">
+              <canvas id="topClientsChart"></canvas>
             </div>
           </div>
         </div>
@@ -582,6 +627,33 @@
       }
     ];
 
+    // === Demo datasets (additional insights) ===
+    const topServersData = [
+      { name: "A. Johnson", amount: 18420 },
+      { name: "M. Rolle", amount: 17210 },
+      { name: "S. Chen", amount: 16640 },
+      { name: "K. Smith", amount: 15890 },
+      { name: "J. Thompson", amount: 15110 },
+      { name: "D. Alvarez", amount: 14780 },
+      { name: "R. Williams", amount: 14220 },
+      { name: "P. Miller", amount: 13890 },
+      { name: "T. Brown", amount: 13240 },
+      { name: "L. Davis", amount: 12760 }
+    ];
+
+    const topClientsData = [
+      { name: "Ava Thompson", amount: 9620 },
+      { name: "Noah Johnson", amount: 9105 },
+      { name: "Sophia Martinez", amount: 8840 },
+      { name: "Liam Williams", amount: 8610 },
+      { name: "Olivia Brown", amount: 8295 },
+      { name: "Ethan Davis", amount: 8030 },
+      { name: "Isabella Miller", amount: 7920 },
+      { name: "Mason Garcia", amount: 7655 },
+      { name: "Mia Rodriguez", amount: 7420 },
+      { name: "James Wilson", amount: 7210 }
+    ];
+
     // === KPI tiles ===
     function renderKpis(data) {
       const totalRestaurants = data.length || 1;
@@ -653,6 +725,13 @@
     initCharts(revenueData);
     initGrid(revenueData);
 
+    // Helper to filter revenue data by restaurant (demo)
+    function getFilteredRevenueData() {
+      const sel = document.getElementById("restaurantSelect");
+      if (!sel || !sel.value || sel.value === "ALL") return revenueData;
+      return revenueData.filter(r => r.restaurant === sel.value);
+    }
+
     // Navigate between dashboard pages based on report type selection
     document.addEventListener("DOMContentLoaded", function () {
       const reportSelect = document.getElementById("reportTypeSelect");
@@ -664,51 +743,111 @@
           window.location.href = target;
         }
       });
+
+      const restaurantSelect = document.getElementById("restaurantSelect");
+      if (restaurantSelect) {
+        restaurantSelect.addEventListener("change", function () {
+          const filtered = getFilteredRevenueData();
+          renderKpis(filtered);
+          initCharts(filtered);
+          $("#revenueGrid").jsGrid("option", "data", filtered);
+        });
+      }
     });
 
     function initCharts(data) {
-  const labels = data.map(r => r.restaurant);
+      const labels = data.map(r => r.restaurant);
 
-  function makeLollipopChart(canvasId, field, label) {
-    const ctx = document.getElementById(canvasId);
-    const values = data.map(r => r[field]);
-
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          {
-            // thin horizontal bar from left to value
-            type: "bar",
-            label,
-            data: values,
-          },
-          {
-            // dot at the end of each bar
-            type: "scatter",
-            data: values.map((v, idx) => ({ x: v, y: labels[idx] })),
-            showLine: false,
-          }
-        ]
-      },
-      options: {
-        indexAxis: "y", // restaurants on the left
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { beginAtZero: true },
-          y: {}
-        }
+      function destroyIfExists(canvasId) {
+        const el = document.getElementById(canvasId);
+        if (!el) return;
+        const existing = Chart.getChart(el);
+        if (existing) existing.destroy();
       }
-    });
-  }
 
-  makeLollipopChart("revenueChart", "totalRevenue", "Total revenue");
-  makeLollipopChart("revpashChart", "revpash", "REVpash");
-  makeLollipopChart("avgCoverChart", "avgRevCover", "Avg revenue per cover");
-}
+      function makeLollipopChart(canvasId, field, label) {
+        const ctx = document.getElementById(canvasId);
+        destroyIfExists(canvasId);
+        const values = data.map(r => r[field]);
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label,
+                data: values,
+              }
+            ]
+          },
+          options: {
+            indexAxis: "y", // restaurants on the left
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { beginAtZero: true },
+              y: {}
+            }
+          }
+        });
+      }
+
+      makeLollipopChart("revenueChart", "totalRevenue", "Total revenue");
+      makeLollipopChart("revpashChart", "revpash", "REVpash");
+      makeLollipopChart("avgCoverChart", "avgRevCover", "Avg revenue per cover");
+
+      // Top revenue-generating servers (demo)
+      const serverCtx = document.getElementById("topServersChart");
+      if (serverCtx) {
+        destroyIfExists("topServersChart");
+        new Chart(serverCtx, {
+          type: "bar",
+          data: {
+            labels: topServersData.map(d => d.name),
+            datasets: [
+              {
+                label: "Revenue",
+                data: topServersData.map(d => d.amount)
+              }
+            ]
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true }, y: {} }
+          }
+        });
+      }
+
+      // Highest-spending guests (demo)
+      const clientCtx = document.getElementById("topClientsChart");
+      if (clientCtx) {
+        destroyIfExists("topClientsChart");
+        new Chart(clientCtx, {
+          type: "bar",
+          data: {
+            labels: topClientsData.map(d => d.name),
+            datasets: [
+              {
+                label: "Spend",
+                data: topClientsData.map(d => d.amount)
+              }
+            ]
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true }, y: {} }
+          }
+        });
+      }
+    }
 </script>
 
 </body>
